@@ -1,7 +1,8 @@
 import os
 import datetime
+import traceback
 from flask import Flask, request, jsonify
-from google.oauth2 import service_account
+import google.auth
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaInMemoryUpload
 
@@ -11,10 +12,7 @@ ROOT_FOLDER_NAME = os.environ.get("DRIVE_ROOT_FOLDER", "_automation_tmp")
 SCOPES = ["https://www.googleapis.com/auth/drive.file"]
 
 def get_drive_service():
-    creds = service_account.Credentials.from_service_account_file(
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"],
-        scopes=SCOPES
-    )
+    creds, _ = google.auth.default(scopes=SCOPES)
     return build("drive", "v3", credentials=creds)
 
 def get_or_create_folder(service, name, parent_id=None):
@@ -43,22 +41,30 @@ def health():
 
 @app.route("/", methods=["POST"])
 def process_order():
-    service = get_drive_service()
-    today = datetime.date.today()
-    ym = today.strftime("%Y-%m")
-    client = request.json.get("client", "テスト取引先")
+    try:
+        service = get_drive_service()
 
-    root_id = get_or_create_folder(service, ROOT_FOLDER_NAME)
-    orders_id = get_or_create_folder(service, "Orders", root_id)
-    ym_id = get_or_create_folder(service, ym, orders_id)
-    client_id = get_or_create_folder(service, client, ym_id)
+        today = datetime.date.today()
+        ym = today.strftime("%Y-%m")
+        client = (request.json or {}).get("client", "テスト取引先")
 
-    upload_dummy_pdf(service, "出荷依頼書.pdf", client_id)
-    upload_dummy_pdf(service, "納品書.pdf", client_id)
-    upload_dummy_pdf(service, "請求書.pdf", client_id)
+        root_id = get_or_create_folder(service, ROOT_FOLDER_NAME)
+        orders_id = get_or_create_folder(service, "Orders", root_id)
+        ym_id = get_or_create_folder(service, ym, orders_id)
+        client_id = get_or_create_folder(service, client, ym_id)
 
-    print("完了")
-    return jsonify({"status": "完了"}), 200
+        upload_dummy_pdf(service, "出荷依頼書.pdf", client_id)
+        upload_dummy_pdf(service, "納品書.pdf", client_id)
+        upload_dummy_pdf(service, "請求書.pdf", client_id)
+
+        print("完了")
+        return jsonify({"status": "完了"}), 200
+
+    except Exception as e:
+        tb = traceback.format_exc()
+        print("ERROR:", str(e))
+        print(tb)
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
