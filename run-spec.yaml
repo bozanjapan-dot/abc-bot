@@ -1,0 +1,22 @@
+spec:
+  template:
+    spec:
+      containerConcurrency: 80
+      containers:
+      - image: asia-northeast1-docker.pkg.dev/project-83e7d21c-5b76-435e-98f/cloud-run-source-deploy/abc-bot-service@sha256:6f940533194eadd6adac311e9b8a8b5aff1b70c21d771bbff9b3a7d283831fac
+        name: placeholder-1
+        ports:
+        - containerPort: 8080
+          name: http1
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        startupProbe:
+          failureThreshold: 1
+          periodSeconds: 240
+          tcpSocket:
+            port: 8080
+          timeoutSeconds: 240
+      serviceAccountName: 890343237671-compute@developer.gserviceaccount.com
+      timeoutSeconds: 300

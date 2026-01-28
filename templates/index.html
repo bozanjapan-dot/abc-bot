@@ -1,15 +1,428 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI事務ボット</title>
+  <title>注文書類自動生成</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #eee;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: #666;
+    }
+    .user-info img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+    }
+    .logout-btn {
+      font-size: 0.8rem;
+      color: #999;
+      text-decoration: none;
+      padding: 4px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .logout-btn:hover { background: #f5f5f5; }
+    .login-btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #4285f4;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    .login-btn:hover { background: #3367d6; }
+    h1 {
+      font-size: 1.4rem;
+      color: #333;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    .subtitle {
+      color: #666;
+      font-size: 0.85rem;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .form-group { margin-bottom: 16px; }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #333;
+      font-size: 0.95rem;
+    }
+    .label-hint {
+      font-weight: normal;
+      color: #888;
+      font-size: 0.8rem;
+    }
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      resize: vertical;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #4a90d9;
+    }
+    .file-input-wrapper {
+      position: relative;
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .file-input-wrapper:hover { border-color: #4a90d9; background: #f8faff; }
+    .file-input-wrapper input[type="file"] {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .file-input-text { color: #666; font-size: 0.9rem; }
+    .file-input-text .icon { font-size: 2rem; display: block; margin-bottom: 8px; }
+    .file-name {
+      margin-top: 8px;
+      padding: 8px;
+      background: #e8f5e9;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: #2e7d32;
+    }
+    .or-divider {
+      text-align: center;
+      color: #999;
+      font-size: 0.85rem;
+      margin: 12px 0;
+      position: relative;
+    }
+    .or-divider::before, .or-divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 40%;
+      height: 1px;
+      background: #ddd;
+    }
+    .or-divider::before { left: 0; }
+    .or-divider::after { right: 0; }
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: #4a90d9;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn:hover { background: #3a7bc8; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .result {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 8px;
+      display: none;
+    }
+    .result.success { display: block; background: #e8f5e9; border: 1px solid #4caf50; }
+    .result.error { display: block; background: #ffebee; border: 1px solid #f44336; }
+    .download-links { margin-top: 12px; }
+    .download-link {
+      display: block;
+      margin: 8px 0;
+      padding: 10px 16px;
+      background: #4caf50;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-align: center;
+    }
+    .download-link:hover { background: #43a047; }
+    .download-link.zip { background: #1976d2; }
+    .download-link.zip:hover { background: #1565c0; }
+    .download-link.drive { background: #ea4335; }
+    .download-link.drive:hover { background: #d33426; }
+    .drive-folder-link {
+      display: block;
+      margin: 12px 0;
+      padding: 12px 16px;
+      background: #fff3e0;
+      border: 1px solid #ff9800;
+      border-radius: 6px;
+      color: #e65100;
+      text-decoration: none;
+      font-weight: 600;
+      text-align: center;
+    }
+    .drive-folder-link:hover { background: #ffe0b2; }
+    .spinner {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+    .spinner.active { display: block; }
+    .spinner-icon {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 3px solid #ddd;
+      border-top-color: #4a90d9;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .example {
+      margin-top: 20px;
+      padding: 12px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      font-size: 0.8rem;
+    }
+    .example-title { font-weight: 600; margin-bottom: 6px; color: #666; }
+    .example pre { white-space: pre-wrap; color: #555; line-height: 1.4; }
+    .priority-note {
+      font-size: 0.75rem;
+      color: #888;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .login-prompt {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .login-prompt p {
+      margin-bottom: 20px;
+      color: #666;
+    }
+    @media (max-width: 480px) {
+      body { padding: 8px; }
+      .container { padding: 16px; }
+      h1 { font-size: 1.2rem; }
+      textarea { min-height: 120px; }
+    }
+  </style>
 </head>
 <body>
-  <h1>AI事務ボット</h1>
-  <form action="/process" method="post">
-    <input type="text" name="input_text" placeholder="テキストを入力">
-    <button type="submit">送信</button>
-  </form>
-  <div id="result">{{ result }}</div>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>注文書類自動生成</h1>
+      </div>
+      {% if user %}
+      <div class="user-info">
+        {% if user.picture %}
+        <img src="{{ user.picture }}" alt="">
+        {% endif %}
+        <span>{{ user.email }}</span>
+        <a href="/logout" class="logout-btn">ログアウト</a>
+      </div>
+      {% elif oauth_enabled %}
+      <a href="/login" class="login-btn" style="font-size:0.85rem;padding:8px 14px;">Googleログイン</a>
+      {% endif %}
+    </div>
+    {% if oauth_enabled and not user %}
+    <div style="background:#fff8e1;border:1px solid #ffc107;border-radius:6px;padding:10px;margin-bottom:16px;font-size:0.85rem;color:#856404;">
+      <strong>Driveに保存するには</strong> Googleでログインしてください。ログインなしでも利用可（Cloud Storage保存）
+    </div>
+    {% endif %}
+    <p class="subtitle">PDF/テキストから出荷依頼書・納品書・請求書を自動作成 {% if user %}→ Drive保存{% endif %}</p>
+
+    <form id="orderForm">
+      <div class="form-group">
+        <label>A) PDFをアップロード <span class="label-hint">(優先)</span></label>
+        <div class="file-input-wrapper" id="fileWrapper">
+          <input type="file" id="pdfFile" name="file" accept=".pdf,application/pdf">
+          <div class="file-input-text">
+            <span class="icon">PDF</span>
+            タップして選択 / ドラッグ&ドロップ
+          </div>
+          <div class="file-name" id="fileName" style="display:none;"></div>
+        </div>
+      </div>
+
+      <div class="or-divider">または</div>
+
+      <div class="form-group">
+        <label for="orderText">B) テキストを貼り付け</label>
+        <textarea id="orderText" name="text" placeholder="注文内容をここに貼り付け..."></textarea>
+      </div>
+
+      <p class="priority-note">両方入力した場合はPDFを優先処理</p>
+      <button type="submit" class="btn" id="submitBtn">書類を生成</button>
+    </form>
+
+    <div class="spinner" id="spinner">
+      <div class="spinner-icon"></div>
+      <div style="margin-top:8px;">処理中...</div>
+    </div>
+    <div class="result" id="result"></div>
+
+    <div class="example">
+      <div class="example-title">テキスト入力例:</div>
+      <pre>取引先: 株式会社サンプル商事
+注文番号: ORD-2026-001
+日付: 2026/01/28
+納品先: 東京都渋谷区1-2-3
+
+ボールペン 100本 @150円
+ノート 50冊 @300円
+
+支払条件: 月末締め翌月末払い</pre>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('orderForm');
+    if (form) {
+      const submitBtn = document.getElementById('submitBtn');
+      const spinner = document.getElementById('spinner');
+      const result = document.getElementById('result');
+      const pdfFile = document.getElementById('pdfFile');
+      const fileWrapper = document.getElementById('fileWrapper');
+      const fileName = document.getElementById('fileName');
+      const orderText = document.getElementById('orderText');
+
+      pdfFile.addEventListener('change', () => {
+        if (pdfFile.files.length > 0) {
+          fileName.textContent = pdfFile.files[0].name;
+          fileName.style.display = 'block';
+        } else {
+          fileName.style.display = 'none';
+        }
+      });
+
+      fileWrapper.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        fileWrapper.style.borderColor = '#4a90d9';
+        fileWrapper.style.background = '#f8faff';
+      });
+      fileWrapper.addEventListener('dragleave', () => {
+        fileWrapper.style.borderColor = '#ddd';
+        fileWrapper.style.background = '';
+      });
+      fileWrapper.addEventListener('drop', (e) => {
+        e.preventDefault();
+        fileWrapper.style.borderColor = '#ddd';
+        fileWrapper.style.background = '';
+        if (e.dataTransfer.files.length > 0) {
+          pdfFile.files = e.dataTransfer.files;
+          fileName.textContent = e.dataTransfer.files[0].name;
+          fileName.style.display = 'block';
+        }
+      });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const hasPdf = pdfFile.files.length > 0;
+        const hasText = orderText.value.trim().length > 0;
+
+        if (!hasPdf && !hasText) {
+          result.className = 'result error';
+          result.innerHTML = 'PDFまたはテキストを入力してください';
+          return;
+        }
+
+        submitBtn.disabled = true;
+        spinner.className = 'spinner active';
+        result.className = 'result';
+        result.innerHTML = '';
+
+        try {
+          const formData = new FormData();
+          if (hasPdf) formData.append('file', pdfFile.files[0]);
+          if (hasText) formData.append('text', orderText.value.trim());
+
+          const response = await fetch('/skill/unified_order', {
+            method: 'POST',
+            body: formData
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            let html = '<strong>完了</strong>';
+
+            // Storage info
+            if (data.storage_type === 'drive' && data.drive_folder_link) {
+              html += `<a href="${data.drive_folder_link}" target="_blank" class="drive-folder-link">Driveフォルダを開く: ${data.drive_folder_path || ''}</a>`;
+            } else if (data.storage_type === 'gcs') {
+              html += `<div style="margin:8px 0;padding:10px;background:#e3f2fd;border-radius:6px;font-size:0.85rem;color:#1565c0;">
+                <strong>Cloud Storage保存済</strong><br>
+                パス: ${data.drive_folder_path || ''}<br>
+                <small style="color:#666;">※ログインするとDriveに保存できます</small>
+              </div>`;
+            } else if (data.drive_folder_path) {
+              html += `<div style="margin:8px 0;color:#666;font-size:0.85rem;">保存先: ${data.drive_folder_path}</div>`;
+            }
+
+            // Individual file downloads
+            html += '<div class="download-links">';
+            if (data.files) {
+              data.files.forEach(f => {
+                html += `<a href="${f.url}" download="${f.name}" class="download-link">${f.name}</a>`;
+                if (f.driveLink) {
+                  html += `<a href="${f.driveLink}" target="_blank" class="download-link drive" style="margin-top:0;font-size:0.8rem;padding:6px 12px;">Driveで開く</a>`;
+                }
+              });
+            }
+            if (data.zip_url) {
+              html += `<a href="${data.zip_url}" download="${data.zip_name}" class="download-link zip">全てダウンロード (ZIP)</a>`;
+            }
+            html += '</div>';
+
+            result.className = 'result success';
+            result.innerHTML = html;
+          } else {
+            result.className = 'result error';
+            result.innerHTML = `エラー: ${data.error || '処理に失敗しました'}`;
+          }
+        } catch (err) {
+          result.className = 'result error';
+          result.innerHTML = `エラー: ${err.message}`;
+        } finally {
+          submitBtn.disabled = false;
+          spinner.className = 'spinner';
+        }
+      });
+    }
+  </script>
 </body>
 </html>

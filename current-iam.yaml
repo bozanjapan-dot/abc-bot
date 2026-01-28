@@ -1,0 +1,42 @@
+bindings:
+- members:
+  - serviceAccount:service-890343237671@gcp-sa-artifactregistry.iam.gserviceaccount.com
+  role: roles/artifactregistry.serviceAgent
+- members:
+  - serviceAccount:890343237671-compute@developer.gserviceaccount.com
+  role: roles/artifactregistry.writer
+- members:
+  - serviceAccount:890343237671@cloudbuild.gserviceaccount.com
+  role: roles/cloudbuild.builds.builder
+- members:
+  - serviceAccount:service-890343237671@gcp-sa-cloudbuild.iam.gserviceaccount.com
+  role: roles/cloudbuild.serviceAgent
+- members:
+  - serviceAccount:service-890343237671@container-analysis.iam.gserviceaccount.com
+  role: roles/containeranalysis.ServiceAgent
+- members:
+  - serviceAccount:service-890343237671@containerregistry.iam.gserviceaccount.com
+  role: roles/containerregistry.ServiceAgent
+- members:
+  - serviceAccount:890343237671-compute@developer.gserviceaccount.com
+  role: roles/iam.serviceAccountUser
+- members:
+  - serviceAccount:890343237671-compute@developer.gserviceaccount.com
+  role: roles/logging.logWriter
+- members:
+  - user:bozanjapan@gmail.com
+  role: roles/owner
+- members:
+  - serviceAccount:service-890343237671@gcp-sa-pubsub.iam.gserviceaccount.com
+  role: roles/pubsub.serviceAgent
+- members:
+  - serviceAccount:890343237671-compute@developer.gserviceaccount.com
+  role: roles/run.admin
+- members:
+  - serviceAccount:service-890343237671@serverless-robot-prod.iam.gserviceaccount.com
+  role: roles/run.serviceAgent
+- members:
+  - serviceAccount:890343237671-compute@developer.gserviceaccount.com
+  role: roles/storage.admin
+etag: BwZJWdfISUw=
+version: 1
