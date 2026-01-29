@@ -1,0 +1,21 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build','-t','gcr.io/\/abc-app:\','.']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push','gcr.io/\/abc-app:\']
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'bash'
+  args:
+    - '-lc'
+    - |
+      gcloud run deploy abc-app \
+        --image gcr.io/\/abc-app:\ \
+        --region asia-northeast1 \
+        --platform managed \
+        --quiet
+      URL=\https://abc-app-ilyizdkoja-an.a.run.app
+      echo "SERVICE_URL=\"
+      curl -fsS "\/health" >/dev/null
+      echo "SMOKE=OK"
+images:
+- 'gcr.io/\/abc-app:\'
