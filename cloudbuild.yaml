@@ -1,15 +1,15 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build','-t','gcr.io/\/abc-app:\','.']
+  args: ['build','-t','asia-northeast1-docker.pkg.dev/project-83e7d21c-5b76-435e-98f/apps/abc-app:\','.']
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['push','gcr.io/\/abc-app:\']
+  args: ['push','asia-northeast1-docker.pkg.dev/project-83e7d21c-5b76-435e-98f/apps/abc-app:\']
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: 'bash'
   args:
     - '-lc'
     - |
       gcloud run deploy abc-app \
-        --image gcr.io/\/abc-app:\ \
+        --image asia-northeast1-docker.pkg.dev/project-83e7d21c-5b76-435e-98f/apps/abc-app:\ \
         --region asia-northeast1 \
         --platform managed \
         --quiet
@@ -18,4 +18,4 @@ steps:
       curl -fsS "\/health" >/dev/null
       echo "SMOKE=OK"
 images:
-- 'gcr.io/\/abc-app:\'
+- 'asia-northeast1-docker.pkg.dev/project-83e7d21c-5b76-435e-98f/apps/abc-app:\'
